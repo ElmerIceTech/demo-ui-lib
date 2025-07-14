@@ -1,11 +1,129 @@
 <template>
-  <button type="button" :class="classes" @click="onClick" :style="style">{{ label }}</button>
+  <button type="button" :class="buttonClasses" @click="handleClick" :style="buttonStyles" :disabled="disabled">
+    <slot>{{ label }}</slot>
+  </button>
 </template>
 
 <script>
 import { computed, reactive } from 'vue';
-
 import './button.css';
+
+/**
+ * Single Responsibility Principle (SRP): Separate size validation logic
+ * @typedef {'small' | 'medium' | 'large'} ButtonSize
+ */
+
+/**
+ * Interface Segregation Principle (ISP): Define specific interfaces for different concerns
+ * @typedef {Object} ButtonProps
+ * @property {string} [label] - Button text
+ * @property {boolean} [primary] - Whether button is primary variant
+ * @property {ButtonSize} [size] - Button size
+ * @property {string} [backgroundColor] - Custom background color
+ * @property {boolean} [disabled] - Whether button is disabled
+ */
+
+/**
+ * @typedef {Object} ButtonStyles
+ * @property {string} [backgroundColor] - Background color
+ * @property {*} [key] - Additional style properties
+ */
+
+/**
+ * @typedef {Object.<string, boolean>} ButtonClasses
+ */
+
+/**
+ * Open/Closed Principle (OCP): Create a strategy pattern for button variants
+ * @interface ButtonVariantStrategy
+ */
+class ButtonVariantStrategy {
+  /**
+   * Get CSS classes for the button
+   * @param {ButtonProps} props - Button properties
+   * @returns {ButtonClasses} CSS classes object
+   */
+  getClasses(props) {
+    throw new Error('getClasses must be implemented');
+  }
+
+  /**
+   * Get inline styles for the button
+   * @param {ButtonProps} props - Button properties
+   * @returns {ButtonStyles} Styles object
+   */
+  getStyles(props) {
+    throw new Error('getStyles must be implemented');
+  }
+}
+
+/**
+ * Single Responsibility Principle (SRP): Primary button strategy implementation
+ */
+class PrimaryButtonStrategy extends ButtonVariantStrategy {
+  /**
+   * @param {ButtonProps} props - Button properties
+   * @returns {ButtonClasses} CSS classes for primary button
+   */
+  getClasses(props) {
+    return {
+      'storybook-button': true,
+      'storybook-button--primary': true,
+      [`storybook-button--${props.size || 'medium'}`]: true,
+    };
+  }
+
+  /**
+   * @param {ButtonProps} props - Button properties
+   * @returns {ButtonStyles} Styles for primary button
+   */
+  getStyles(props) {
+    return {
+      backgroundColor: props.backgroundColor,
+    };
+  }
+}
+
+/**
+ * Single Responsibility Principle (SRP): Secondary button strategy implementation
+ */
+class SecondaryButtonStrategy extends ButtonVariantStrategy {
+  /**
+   * @param {ButtonProps} props - Button properties
+   * @returns {ButtonClasses} CSS classes for secondary button
+   */
+  getClasses(props) {
+    return {
+      'storybook-button': true,
+      'storybook-button--secondary': true,
+      [`storybook-button--${props.size || 'medium'}`]: true,
+    };
+  }
+
+  /**
+   * @param {ButtonProps} props - Button properties
+   * @returns {ButtonStyles} Styles for secondary button
+   */
+  getStyles(props) {
+    return {
+      backgroundColor: props.backgroundColor,
+    };
+  }
+}
+
+/**
+ * Dependency Inversion Principle (DIP): Use factory pattern for strategy creation
+ */
+class ButtonVariantFactory {
+  /**
+   * Create appropriate button strategy based on variant
+   * @param {boolean} isPrimary - Whether button is primary variant
+   * @returns {ButtonVariantStrategy} Button strategy instance
+   */
+  static createStrategy(isPrimary) {
+    return isPrimary ? new PrimaryButtonStrategy() : new SecondaryButtonStrategy();
+  }
+}
 
 export default {
   name: 'my-button',
@@ -13,7 +131,8 @@ export default {
   props: {
     label: {
       type: String,
-      required: true,
+      required: false,
+      default: '',
     },
     primary: {
       type: Boolean,
@@ -22,31 +141,50 @@ export default {
     size: {
       type: String,
       validator: function (value) {
-        return ['small', 'medium', 'large'].indexOf(value) !== -1;
+        return ['small', 'medium', 'large'].includes(value);
       },
+      default: 'medium',
     },
     backgroundColor: {
       type: String,
+      default: '',
+    },
+    disabled: {
+      type: Boolean,
+      default: false,
     },
   },
 
   emits: ['click'],
 
   setup(props, { emit }) {
-    props = reactive(props);
+    // Single Responsibility Principle (SRP): Separate concerns into focused functions
+    const createButtonStrategy = () => {
+      return ButtonVariantFactory.createStrategy(props.primary || false);
+    };
+
+    const buttonStrategy = computed(() => createButtonStrategy());
+
+    // Single Responsibility Principle (SRP): Each computed property has a single purpose
+    const buttonClasses = computed(() => {
+      return buttonStrategy.value.getClasses(props);
+    });
+
+    const buttonStyles = computed(() => {
+      return buttonStrategy.value.getStyles(props);
+    });
+
+    // Single Responsibility Principle (SRP): Click handler has single responsibility
+    const handleClick = (event) => {
+      if (!props.disabled) {
+        emit('click', event);
+      }
+    };
+
     return {
-      classes: computed(() => ({
-        'storybook-button': true,
-        'storybook-button--primary': props.primary,
-        'storybook-button--secondary': !props.primary,
-        [`storybook-button--${props.size || 'medium'}`]: true,
-      })),
-      style: computed(() => ({
-        backgroundColor: props.backgroundColor,
-      })),
-      onClick() {
-        emit('click');
-      },
+      buttonClasses,
+      buttonStyles,
+      handleClick,
     };
   },
 };
