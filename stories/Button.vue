@@ -26,12 +26,76 @@ import './button.css';
 /**
  * @typedef {Object} ButtonStyles
  * @property {string} [backgroundColor] - Background color
+ * @property {string} [padding] - Button padding
+ * @property {string} [fontSize] - Font size
+ * @property {string} [minHeight] - Minimum height
  * @property {*} [key] - Additional style properties
  */
 
 /**
  * @typedef {Object.<string, boolean>} ButtonClasses
  */
+
+/**
+ * @typedef {Object} ButtonDimensions
+ * @property {string} padding - CSS padding value
+ * @property {string} fontSize - CSS font-size value
+ * @property {string} minHeight - CSS min-height value
+ */
+
+/**
+ * Single Responsibility Principle (SRP): Size mapping logic separated from button component
+ * Open/Closed Principle (OCP): Easy to extend with new sizes without modifying existing code
+ */
+class ButtonSizeMapper {
+  /**
+   * Map of button sizes to their corresponding dimensions
+   * @type {Object.<ButtonSize, ButtonDimensions>}
+   */
+  static sizeMap = {
+    small: {
+      padding: '8px 16px',
+      fontSize: '12px',
+      minHeight: '32px'
+    },
+    medium: {
+      padding: '12px 24px',
+      fontSize: '14px',
+      minHeight: '40px'
+    },
+    large: {
+      padding: '16px 32px',
+      fontSize: '16px',
+      minHeight: '48px'
+    }
+  };
+
+  /**
+   * Get dimensions for a specific button size
+   * @param {ButtonSize} size - The button size
+   * @returns {ButtonDimensions} The corresponding dimensions
+   */
+  static getDimensions(size) {
+    return this.sizeMap[size] || this.sizeMap.medium;
+  }
+
+  /**
+   * Get all available button sizes
+   * @returns {ButtonSize[]} Array of available sizes
+   */
+  static getAvailableSizes() {
+    return Object.keys(this.sizeMap);
+  }
+
+  /**
+   * Check if a size is valid
+   * @param {string} size - Size to validate
+   * @returns {boolean} Whether the size is valid
+   */
+  static isValidSize(size) {
+    return this.getAvailableSizes().includes(size);
+  }
+}
 
 /**
  * Open/Closed Principle (OCP): Create a strategy pattern for button variants
@@ -78,8 +142,12 @@ class PrimaryButtonStrategy extends ButtonVariantStrategy {
    * @returns {ButtonStyles} Styles for primary button
    */
   getStyles(props) {
+    const dimensions = ButtonSizeMapper.getDimensions(props.size || 'medium');
     return {
       backgroundColor: props.backgroundColor,
+      padding: dimensions.padding,
+      fontSize: dimensions.fontSize,
+      minHeight: dimensions.minHeight,
     };
   }
 }
@@ -105,8 +173,12 @@ class SecondaryButtonStrategy extends ButtonVariantStrategy {
    * @returns {ButtonStyles} Styles for secondary button
    */
   getStyles(props) {
+    const dimensions = ButtonSizeMapper.getDimensions(props.size || 'medium');
     return {
       backgroundColor: props.backgroundColor,
+      padding: dimensions.padding,
+      fontSize: dimensions.fontSize,
+      minHeight: dimensions.minHeight,
     };
   }
 }
@@ -141,7 +213,7 @@ export default {
     size: {
       type: String,
       validator: function (value) {
-        return ['small', 'medium', 'large'].includes(value);
+        return ButtonSizeMapper.isValidSize(value);
       },
       default: 'medium',
     },
