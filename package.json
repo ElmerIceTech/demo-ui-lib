@@ -1,6 +1,6 @@
 {
   "name": "@elmer-icetech/demo-ui-lib",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "description": "Test publish",
   "main": "dist/my-ui-lib.umd.js",
   "module": "dist/demo-ui-lib.mjs",
