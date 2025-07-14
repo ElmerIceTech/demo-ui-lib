@@ -1,9 +1,9 @@
 {
   "name": "@elmer-icetech/demo-ui-lib",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Test publish",
   "main": "dist/my-ui-lib.umd.js",
-  "module": "dist/demo-ui-lib.mjs",   
+  "module": "dist/demo-ui-lib.mjs",
   "devDependencies": {
     "@chromatic-com/storybook": "^4.0.1",
     "@storybook/addon-a11y": "^9.0.16",
