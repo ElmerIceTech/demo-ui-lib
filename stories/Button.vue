@@ -58,6 +58,7 @@ import './button.css';
  * @property {string} [gap] - Gap between elements
  * @property {string} [color] - Text color
  * @property {string} [borderColor] - Border color
+ * @property {string} [border] - Border style
  * @property {*} [key] - Additional style properties
  */
 
@@ -73,6 +74,152 @@ import './button.css';
  * @property {string} iconSize - CSS size for icons
  * @property {string} gap - CSS gap between elements
  */
+
+/**
+ * @typedef {Object} ButtonColors
+ * @property {string} background - Background color
+ * @property {string} text - Text color
+ * @property {string} border - Border color
+ * @property {string} hoverBackground - Hover background color
+ * @property {string} hoverText - Hover text color
+ * @property {string} hoverBorder - Hover border color
+ * @property {string} disabledBackground - Disabled background color
+ * @property {string} disabledText - Disabled text color
+ * @property {string} disabledBorder - Disabled border color
+ */
+
+/**
+ * Single Responsibility Principle (SRP): Color management logic separated from button component
+ * Open/Closed Principle (OCP): Easy to extend with new color schemes without modifying existing code
+ */
+class ColorManager {
+  /**
+   * Color schemes for different button types
+   * @type {Object.<ButtonType, ButtonColors>}
+   */
+  static colorSchemes = {
+    primary: {
+      background: '#1ea7fd',
+      text: '#ffffff',
+      border: '#1ea7fd',
+      hoverBackground: '#0d8ce0',
+      hoverText: '#ffffff',
+      hoverBorder: '#0d8ce0',
+      disabledBackground: '#b3d9f2',
+      disabledText: '#ffffff',
+      disabledBorder: '#b3d9f2'
+    },
+    secondary: {
+      background: 'transparent',
+      text: '#333333',
+      border: '#333333',
+      hoverBackground: '#f5f5f5',
+      hoverText: '#333333',
+      hoverBorder: '#333333',
+      disabledBackground: 'transparent',
+      disabledText: '#999999',
+      disabledBorder: '#cccccc'
+    },
+    danger: {
+      background: '#dc3545',
+      text: '#ffffff',
+      border: '#dc3545',
+      hoverBackground: '#c82333',
+      hoverText: '#ffffff',
+      hoverBorder: '#c82333',
+      disabledBackground: '#f5c6cb',
+      disabledText: '#ffffff',
+      disabledBorder: '#f5c6cb'
+    },
+    success: {
+      background: '#28a745',
+      text: '#ffffff',
+      border: '#28a745',
+      hoverBackground: '#218838',
+      hoverText: '#ffffff',
+      hoverBorder: '#218838',
+      disabledBackground: '#c3e6cb',
+      disabledText: '#ffffff',
+      disabledBorder: '#c3e6cb'
+    },
+    warning: {
+      background: '#ffc107',
+      text: '#212529',
+      border: '#ffc107',
+      hoverBackground: '#e0a800',
+      hoverText: '#212529',
+      hoverBorder: '#e0a800',
+      disabledBackground: '#ffeaa7',
+      disabledText: '#6c757d',
+      disabledBorder: '#ffeaa7'
+    }
+  };
+
+  /**
+   * Get color scheme for a specific button type
+   * @param {ButtonType} type - The button type
+   * @returns {ButtonColors} The corresponding color scheme
+   */
+  static getColorScheme(type) {
+    return this.colorSchemes[type] || this.colorSchemes.secondary;
+  }
+
+  /**
+   * Get colors for a button based on type and state
+   * @param {ButtonType} type - The button type
+   * @param {boolean} disabled - Whether button is disabled
+   * @param {string} customBackground - Custom background color override
+   * @returns {Object} Colors object with background, color, and border
+   */
+  static getColors(type, disabled = false, customBackground = '') {
+    const scheme = this.getColorScheme(type);
+
+    if (disabled) {
+      return {
+        backgroundColor: customBackground || scheme.disabledBackground,
+        color: scheme.disabledText,
+        border: `1px solid ${scheme.disabledBorder}`
+      };
+    }
+
+    return {
+      backgroundColor: customBackground || scheme.background,
+      color: scheme.text,
+      border: `1px solid ${scheme.border}`
+    };
+  }
+
+  /**
+   * Get hover colors for a button type
+   * @param {ButtonType} type - The button type
+   * @returns {Object} Hover colors object
+   */
+  static getHoverColors(type) {
+    const scheme = this.getColorScheme(type);
+    return {
+      backgroundColor: scheme.hoverBackground,
+      color: scheme.hoverText,
+      borderColor: scheme.hoverBorder
+    };
+  }
+
+  /**
+   * Get all available color schemes
+   * @returns {ButtonType[]} Array of available color schemes
+   */
+  static getAvailableColorSchemes() {
+    return Object.keys(this.colorSchemes);
+  }
+
+  /**
+   * Check if a color scheme exists
+   * @param {string} type - Type to check
+   * @returns {boolean} Whether the color scheme exists
+   */
+  static hasColorScheme(type) {
+    return this.colorSchemes.hasOwnProperty(type);
+  }
+}
 
 /**
  * Single Responsibility Principle (SRP): Size mapping logic separated from button component
@@ -243,16 +390,16 @@ class PrimaryButtonStrategy extends ButtonVariantStrategy {
    */
   getStyles(props) {
     const dimensions = ButtonSizeMapper.getDimensions(props.size || 'medium');
+    const colors = ColorManager.getColors('primary', props.disabled, props.backgroundColor);
+
     return {
-      backgroundColor: props.backgroundColor || '#1ea7fd',
-      color: '#ffffff',
+      ...colors,
       padding: dimensions.padding,
       fontSize: dimensions.fontSize,
       minHeight: dimensions.minHeight,
       display: 'flex',
       alignItems: 'center',
       gap: dimensions.gap,
-      border: '1px solid #1ea7fd',
     };
   }
 }
@@ -282,16 +429,16 @@ class SecondaryButtonStrategy extends ButtonVariantStrategy {
    */
   getStyles(props) {
     const dimensions = ButtonSizeMapper.getDimensions(props.size || 'medium');
+    const colors = ColorManager.getColors('secondary', props.disabled, props.backgroundColor);
+
     return {
-      backgroundColor: props.backgroundColor || 'transparent',
-      color: '#333333',
+      ...colors,
       padding: dimensions.padding,
       fontSize: dimensions.fontSize,
       minHeight: dimensions.minHeight,
       display: 'flex',
       alignItems: 'center',
       gap: dimensions.gap,
-      border: '1px solid #333333',
     };
   }
 }
@@ -321,16 +468,16 @@ class DangerButtonStrategy extends ButtonVariantStrategy {
    */
   getStyles(props) {
     const dimensions = ButtonSizeMapper.getDimensions(props.size || 'medium');
+    const colors = ColorManager.getColors('danger', props.disabled, props.backgroundColor);
+
     return {
-      backgroundColor: props.backgroundColor || '#dc3545',
-      color: '#ffffff',
+      ...colors,
       padding: dimensions.padding,
       fontSize: dimensions.fontSize,
       minHeight: dimensions.minHeight,
       display: 'flex',
       alignItems: 'center',
       gap: dimensions.gap,
-      border: '1px solid #dc3545',
     };
   }
 }
@@ -360,16 +507,16 @@ class SuccessButtonStrategy extends ButtonVariantStrategy {
    */
   getStyles(props) {
     const dimensions = ButtonSizeMapper.getDimensions(props.size || 'medium');
+    const colors = ColorManager.getColors('success', props.disabled, props.backgroundColor);
+
     return {
-      backgroundColor: props.backgroundColor || '#28a745',
-      color: '#ffffff',
+      ...colors,
       padding: dimensions.padding,
       fontSize: dimensions.fontSize,
       minHeight: dimensions.minHeight,
       display: 'flex',
       alignItems: 'center',
       gap: dimensions.gap,
-      border: '1px solid #28a745',
     };
   }
 }
@@ -399,16 +546,16 @@ class WarningButtonStrategy extends ButtonVariantStrategy {
    */
   getStyles(props) {
     const dimensions = ButtonSizeMapper.getDimensions(props.size || 'medium');
+    const colors = ColorManager.getColors('warning', props.disabled, props.backgroundColor);
+
     return {
-      backgroundColor: props.backgroundColor || '#ffc107',
-      color: '#212529',
+      ...colors,
       padding: dimensions.padding,
       fontSize: dimensions.fontSize,
       minHeight: dimensions.minHeight,
       display: 'flex',
       alignItems: 'center',
       gap: dimensions.gap,
-      border: '1px solid #ffc107',
     };
   }
 }
