@@ -597,7 +597,7 @@ class ButtonVariantFactory {
 }
 
 export default {
-  name: 'my-button',
+  name: 'Button',
 
   props: {
     label: {

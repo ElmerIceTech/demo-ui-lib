@@ -8,6 +8,7 @@ export default {
   component: MyButton,
   tags: ['autodocs'],
   argTypes: {
+    type: { control: { type: 'select' }, options: ['primary', 'secondary', 'danger', 'success', 'warning'] },
     size: { control: { type: 'select' }, options: ['small', 'medium', 'large'] },
     backgroundColor: { control: 'color' },
   },
@@ -15,29 +16,68 @@ export default {
   args: { onClick: fn() },
 };
 
+export const Default = {
+  args: {
+    type: 'primary',
+    label: 'Button',
+  },
+};
+
 // More on writing stories with args: https://storybook.js.org/docs/writing-stories/args
 export const Primary = {
   args: {
-    primary: true,
-    label: 'Button',
+    type: 'primary',
+    label: 'Primary',
   },
 };
 
 export const Secondary = {
   args: {
-    label: 'Button',
+    type: 'secondary',
+    label: 'Secondary',
+  },
+};
+
+export const Danger = {
+  args: {
+    type: 'danger',
+    label: 'Danger',
+  },
+};
+
+export const Success = {
+  args: {
+    type: 'success',
+    label: 'Success',
+  },
+};
+
+export const Warning = {
+  args: {
+    type: 'warning',
+    label: 'Warning',
   },
 };
 
 export const Large = {
   args: {
+    type: 'primary',
     size: 'large',
+    label: 'Button',
+  },
+};
+
+export const Medium = {
+  args: {
+    type: 'primary',
+    size: 'medium',
     label: 'Button',
   },
 };
 
 export const Small = {
   args: {
+    type: 'primary',
     size: 'small',
     label: 'Button',
   },
